@@ -121,15 +121,18 @@ public class EstudianteController {
     
     private String leerArchivoLista(){
         try {
+            String fichero = "";
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(new FileReader(ruta));
-            JSONArray array = new JSONArray();
+            JSONArray array = (JSONArray) obj;
             array.add(obj);
-            for (Object o : array) {
-                EstudianteDto estudiante = (EstudianteDto) o;
-                System.out.println(estudiante.getNombre());
+                        
+            for (int i = 0; i < array.size(); i++) {
+                JSONObject estudiante = (JSONObject) array.get(i);
+                fichero+=estudiante;
+                System.out.println(estudiante.get("nombre"));
             }
-            
+            return fichero;
         } catch (FileNotFoundException e) {
             e.getMessage();
         } catch (IOException ex) {
