@@ -158,7 +158,8 @@ public class EstudianteController {
             String estudianteJson = gson.toJson(estudiante);
             if(!archivo.exists()){      
                 
-                archivo.createNewFile();                
+                archivo.createNewFile();     
+                
                 
                 estudianteBW.write(estudianteJson);
                 System.out.println("Primera vez");
