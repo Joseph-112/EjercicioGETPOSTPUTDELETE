@@ -11,9 +11,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +76,7 @@ public class EstudianteController {
     @GET
     @Path("/obtener")
     @Produces(MediaType.APPLICATION_JSON)
-    public String obtener(){    
+    public List<EstudianteDto> obtener(){    
         /*
         List<String> materias = new ArrayList();
         materias.add("Inglés");
@@ -84,9 +86,19 @@ public class EstudianteController {
         Gson gson = new Gson();
         */
         
-        String json = leerArchivo();
+        //String json = leerArchivo();
         
-        return json;
+        List<EstudianteDto> listaEst = new ArrayList<EstudianteDto>();
+        List<String> listaMateria = new ArrayList<>();
+        listaMateria.add("Programacion I");
+        listaMateria.add("Auditoria");
+        listaMateria.add("SI");
+        int[] vector = {1, 2, 3, 4};
+        listaEst.add( new EstudianteDto("1070", "Johans",  "Gonzalez", 25, "johans-123@hotmail.com", listaMateria, vector));
+        listaEst.add( new EstudianteDto("1234", "Joseph",  "Trejos", 25, "adsfghdsa-123@hotmail.com", listaMateria, vector));
+        
+        
+        return listaEst;
         
     }
 
@@ -129,6 +141,8 @@ public class EstudianteController {
                         
             for (int i = 0; i < array.size(); i++) {
                 JSONObject estudiante = (JSONObject) array.get(i);
+                //EstudianteDto est;
+                //est = new EstudianteDto(estudiante.get("cedula"),estudiante.get("nombre"),estudiante.get("apellido"),estudiante.get("edad"),estudiante.get("correo"),estudiante.get("listaMateria"),estudiante.get("numero"));
                 fichero+=estudiante;
                 System.out.println(estudiante.get("nombre"));
             }
@@ -145,7 +159,7 @@ public class EstudianteController {
         return null;
     }
     
-    
+    /*
     @POST
     @Path("/insertar")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -179,12 +193,47 @@ public class EstudianteController {
                 }
                 for (int numero : estudiante.getNumero()) {
                     estudianteBW.write(numero);
-                } */
+                } 
             
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Problema con encontrar archivo");
         }
+    }
+    */
+    
+    @POST
+    @Path("/insertar")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void insertar(List<EstudianteDto> estudiante){
+        
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ruta));
+            for (EstudianteDto estudianteDto : estudiante) {
+                oos.writeObject(estudianteDto);
+            }
+            oos.close();
+            
+            
+            /*estudianteBW.write(estudiante.getNombre());
+            estudianteBW.write(estudiante.getApellido());
+            estudianteBW.write(estudiante.getEdad().toString());
+            estudianteBW.write(estudiante.getCorreo());
+            for (String materia : estudiante.getListaMateria()) {
+            estudianteBW.write(materia);
+            }
+            for (int numero : estudiante.getNumero()) {
+            estudianteBW.write(numero);
+            } */
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+            ex.getMessage();
+        } catch (IOException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+            ex.getMessage();
+        }
+            
+        
     }
     
     @PUT
