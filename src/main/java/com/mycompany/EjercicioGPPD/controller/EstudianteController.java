@@ -5,26 +5,21 @@
  */
 package com.mycompany.EjercicioGPPD.controller;
 
-import com.google.gson.Gson;
 import com.mycompany.EjercicioGPPD.dto.EstudianteDto;
 import com.mycompany.EjercicioGPPD.dto.ListaEstudiantes;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -35,10 +30,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 
 /**
@@ -50,7 +41,8 @@ import org.json.simple.parser.ParseException;
 @Path("/estudiantes")
 public class EstudianteController {
     
-    private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
+    //private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
+    private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
     
     /*
     @GET
@@ -69,12 +61,21 @@ public class EstudianteController {
     @GET
     @Path("/obtenerPorCedula/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<String> obtenerPorCedula(@PathParam ("cedula") String cedula){        
-        System.out.println(cedula);
-        List<String> ejemplo = new ArrayList<>();
-        ejemplo.add("Algo");
-        ejemplo.add("Otro");
-        return ejemplo;
+    public Response obtenerPorCedula(@PathParam ("cedula") String cedula){        
+        
+        List<EstudianteDto> aux = leerArchivo();
+        EstudianteDto encontrado = null;
+        for ( EstudianteDto estudianteDto : aux) {
+            
+            if (estudianteDto.getCedula().equals(cedula)) {
+                System.out.println(estudianteDto.toString());
+                encontrado = estudianteDto;
+                return Response.status(Response.Status.OK).entity(encontrado).header("Tipo dato","Estudiante").build();
+            }
+        }
+        return Response.status(Response.Status.NOT_FOUND).entity(encontrado).header("Tipo dato", "Lista de estudiantes").build();
+
+          
     }
     
     @GET
@@ -82,123 +83,13 @@ public class EstudianteController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response obtener(){    
         
-        ObjectInputStream ois = null;
-        try {
-            /*
-            List<String> materias = new ArrayList();
-            materias.add("Inglés");
-            materias.add("Matemática");
-            int [] numeros = {1,2,3,4};
-            EstudianteDto ejemplo = new EstudianteDto("123543","Juan","Perez",24,"juan@juan.com",materias,numeros);
-            Gson gson = new Gson();
-             */
-            //String json = leerArchivo();
-            ois = new ObjectInputStream(new FileInputStream(ruta));
-            // Se lee el primer objeto
-            //Object aux = ois.readObject();
-            //EstudianteDto aux = (EstudianteDto) ois.readObject();
-            //System.out.println(aux.toString());
-            ListaEstudiantes aux = (ListaEstudiantes) ois.readObject();
-            for (EstudianteDto estudianteDto : aux.getListaEst()) {
-                System.out.println(estudianteDto.toString());
-            }
-            
-            //EstudianteDto aux = (EstudianteDto) ois.readObject();
-
-            // System.out.println(aux.toString());
-            // Mientras haya objetos
-            /*
-            while (aux != null) {
-                if (aux instanceof EstudianteDto) {
-                    //EstudianteDto estudiante = (EstudianteDto) aux;
-                    System.out.println(aux);  // Se escribe en pantalla el objeto
-                    //System.out.println(estudiante.toString());
-                }
-                aux = ois.readObject();
-            }*/
-            
-            ois.close();
-            
-            List<EstudianteDto> listaEst = new ArrayList<EstudianteDto>();
-            List<String> listaMateria = new ArrayList<>();
-            listaMateria.add("Programacion I");
-            listaMateria.add("Auditoria");
-            listaMateria.add("SI");
-            int[] vector = {1, 2, 3, 4};
-            listaEst.add( new EstudianteDto("1070", "Johans",  "Gonzalez", 25, "johans-123@hotmail.com", listaMateria, vector));
-            listaEst.add( new EstudianteDto("1234", "Joseph",  "Trejos", 25, "adsfghdsa-123@hotmail.com", listaMateria, vector));
-            //return listaEst;
-            return Response.status(Response.Status.CREATED).entity(aux.getListaEst()).header("Tipo dato","Lista de estudiantes").build();
-
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                ois.close();
-            } catch (IOException ex) {
-                Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        List<EstudianteDto> aux = leerArchivo();
+        for (EstudianteDto estudianteDto : aux) {
+            System.out.println(estudianteDto.toString());
         }
-        return null;
-        
-    }
-
-    private List<EstudianteDto> leerArchivo(){
-        
-        ObjectInputStream ois = null;
-        try {
-            ois = new ObjectInputStream(new FileInputStream(ruta));
-            ListaEstudiantes aux = (ListaEstudiantes) ois.readObject();
-            ois.close();
-            return aux.getListaEst();
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                ois.close();
-            } catch (IOException ex) {
-                Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return null;
-    }
-    
-    
-    private String leerArchivoLista(){
-        try {
-            String fichero = "";
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(new FileReader(ruta));
-            JSONArray array = (JSONArray) obj;
-            array.add(obj);
-                        
-            for (int i = 0; i < array.size(); i++) {
-                JSONObject estudiante = (JSONObject) array.get(i);
-                //EstudianteDto est;
-                //est = new EstudianteDto(estudiante.get("cedula"),estudiante.get("nombre"),estudiante.get("apellido"),estudiante.get("edad"),estudiante.get("correo"),estudiante.get("listaMateria"),estudiante.get("numero"));
-                fichero+=estudiante;
-                System.out.println(estudiante.get("nombre"));
-            }
-            return fichero;
-        } catch (FileNotFoundException e) {
-            e.getMessage();
-        } catch (IOException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
-        } catch (ParseException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
-        }
-        return null;
-    }
+        return Response.status(Response.Status.OK).entity(aux).header("Tipo dato","Lista de estudiantes").build();
+            
+    }    
     
     @POST
     @Path("/insertar")
@@ -206,30 +97,11 @@ public class EstudianteController {
     @NotNull
     public Response insertar(EstudianteDto estudiante){
         
-        try {
+        ListaEstudiantes lista = new ListaEstudiantes();
+        List<EstudianteDto> listaAux = leerArchivo();
+        escribirEnArchivo(listaAux);
             
-            ListaEstudiantes lista = new ListaEstudiantes();
-            
-            List<EstudianteDto> listaAux = leerArchivo();
-            listaAux.add(estudiante);
-            lista.setListaEst(listaAux);
-            
-            File archivo = new File(ruta);
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivo));
-            
-            oos.writeObject(lista);
-            
-            oos.close();
-            
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
-        } catch (IOException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
-        }
-            
-        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","Lista de estudiantes").build();
+        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","EstudianteDto").build();
     }
     
     @POST
@@ -262,21 +134,90 @@ public class EstudianteController {
     }
 
     @PUT
-    @Path("/actualizar")
+    @Path("/actualizar/{cedula}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void actualizar(List<String> listaEstudiantes){
-        for (String le : listaEstudiantes) {
-            System.out.println(le);
+    @NotNull
+    public Response actualizar(@PathParam("cedula") String cedula, EstudianteDto estudianteDto){
+        
+        List<EstudianteDto> aux = leerArchivo();
+        List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
+        
+        for (EstudianteDto encontrado : aux) {
+            
+            if (!encontrado.getCedula().equals(cedula)) {
+                listaNueva.add(encontrado);
+            }else{
+                System.out.println("Estudiante antigua: " + encontrado.toString());                
+                System.out.println("Estudiante nueva: "+ estudianteDto.toString());
+                listaNueva.add(estudianteDto);
+            }
         }
-        System.out.println("Registrado editado correctamente");
-        //return listaEstudiantes;
+        escribirEnArchivo(listaNueva);
+        return Response.status(Response.Status.OK).entity(listaNueva).header("Tipo dato","Estudiante").build();
     }
     
     @DELETE
     @Path("/eliminar/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void eliminar(@PathParam("cedula") String cedula){    
-        System.out.println("Se eliminó la cédula: " + cedula);
+    @NotNull
+    public Response eliminar(@PathParam("cedula") String cedula){    
+        List<EstudianteDto> aux = leerArchivo();
+        List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
+        for (EstudianteDto estudianteDto : aux) {
+            
+            if (!estudianteDto.getCedula().equals(cedula)) {
+                listaNueva.add(estudianteDto);
+            }else{
+                System.out.println("Estudiante eliminada: " + estudianteDto.toString());                
+                
+            }
+        }
+        escribirEnArchivo(listaNueva);
+        return Response.status(Response.Status.OK).entity(listaNueva).header("Tipo dato","Estudiante").build();
+    }
+    
+    
+    private List<EstudianteDto> leerArchivo(){
+        
+        ObjectInputStream ois = null;
+        try {
+            ois = new ObjectInputStream(new FileInputStream(ruta));
+            ListaEstudiantes aux = (ListaEstudiantes) ois.readObject();
+            ois.close();
+            return aux.getListaEst();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                ois.close();
+            } catch (IOException ex) {
+                Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return null;
+    }
+    
+    public void escribirEnArchivo(List<EstudianteDto> listaEstudiantes){
+        
+        try{
+            
+            File archivo = new File(ruta);
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivo));
+            
+            ListaEstudiantes lista = new ListaEstudiantes();
+            lista.setListaEst(listaEstudiantes);
+            
+            oos.writeObject(lista);
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }
