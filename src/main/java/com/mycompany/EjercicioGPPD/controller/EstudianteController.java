@@ -8,20 +8,20 @@ package com.mycompany.EjercicioGPPD.controller;
 import com.google.gson.Gson;
 import com.mycompany.EjercicioGPPD.dto.EstudianteDto;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,6 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -76,29 +77,62 @@ public class EstudianteController {
     @GET
     @Path("/obtener")
     @Produces(MediaType.APPLICATION_JSON)
+    @Null
     public List<EstudianteDto> obtener(){    
-        /*
-        List<String> materias = new ArrayList();
-        materias.add("Inglés");
-        materias.add("Matemática");
-        int [] numeros = {1,2,3,4};
-        EstudianteDto ejemplo = new EstudianteDto("123543","Juan","Perez",24,"juan@juan.com",materias,numeros);
-        Gson gson = new Gson();
-        */
         
-        //String json = leerArchivo();
-        
-        List<EstudianteDto> listaEst = new ArrayList<EstudianteDto>();
-        List<String> listaMateria = new ArrayList<>();
-        listaMateria.add("Programacion I");
-        listaMateria.add("Auditoria");
-        listaMateria.add("SI");
-        int[] vector = {1, 2, 3, 4};
-        listaEst.add( new EstudianteDto("1070", "Johans",  "Gonzalez", 25, "johans-123@hotmail.com", listaMateria, vector));
-        listaEst.add( new EstudianteDto("1234", "Joseph",  "Trejos", 25, "adsfghdsa-123@hotmail.com", listaMateria, vector));
-        
-        
-        return listaEst;
+        ObjectInputStream ois = null;
+        try {
+            /*
+            List<String> materias = new ArrayList();
+            materias.add("Inglés");
+            materias.add("Matemática");
+            int [] numeros = {1,2,3,4};
+            EstudianteDto ejemplo = new EstudianteDto("123543","Juan","Perez",24,"juan@juan.com",materias,numeros);
+            Gson gson = new Gson();
+             */
+            //String json = leerArchivo();
+            ois = new ObjectInputStream(new FileInputStream(ruta));
+            // Se lee el primer objeto
+            //Object aux = ois.readObject();
+            EstudianteDto aux = (EstudianteDto) ois.readObject();
+
+            System.out.println(aux.toString());
+            // Mientras haya objetos
+            /*
+            while (aux != null) {
+                if (aux instanceof EstudianteDto) {
+                    //EstudianteDto estudiante = (EstudianteDto) aux;
+                    System.out.println(aux);  // Se escribe en pantalla el objeto
+                    //System.out.println(estudiante.toString());
+                }
+                aux = ois.readObject();
+            }*/
+            
+            ois.close();
+            
+            List<EstudianteDto> listaEst = new ArrayList<EstudianteDto>();
+            List<String> listaMateria = new ArrayList<>();
+            listaMateria.add("Programacion I");
+            listaMateria.add("Auditoria");
+            listaMateria.add("SI");
+            int[] vector = {1, 2, 3, 4};
+            listaEst.add( new EstudianteDto("1070", "Johans",  "Gonzalez", 25, "johans-123@hotmail.com", listaMateria, vector));
+            listaEst.add( new EstudianteDto("1234", "Joseph",  "Trejos", 25, "adsfghdsa-123@hotmail.com", listaMateria, vector));
+            return listaEst;
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                ois.close();
+            } catch (IOException ex) {
+                Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return null;
         
     }
 
@@ -160,6 +194,9 @@ public class EstudianteController {
     }
     
     /*
+    
+    /////////////// Insertar usando FileWriter y BufferedWriter ///////////////
+    
     @POST
     @Path("/insertar")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -205,26 +242,16 @@ public class EstudianteController {
     @POST
     @Path("/insertar")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void insertar(List<EstudianteDto> estudiante){
+    @NotNull
+    public Response insertar(EstudianteDto estudiante){
         
         try {
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ruta));
-            for (EstudianteDto estudianteDto : estudiante) {
-                oos.writeObject(estudianteDto);
-            }
+            
+            oos.writeObject(estudiante);
+            
             oos.close();
             
-            
-            /*estudianteBW.write(estudiante.getNombre());
-            estudianteBW.write(estudiante.getApellido());
-            estudianteBW.write(estudiante.getEdad().toString());
-            estudianteBW.write(estudiante.getCorreo());
-            for (String materia : estudiante.getListaMateria()) {
-            estudianteBW.write(materia);
-            }
-            for (int numero : estudiante.getNumero()) {
-            estudianteBW.write(numero);
-            } */
         } catch (FileNotFoundException ex) {
             Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
             ex.getMessage();
@@ -233,9 +260,9 @@ public class EstudianteController {
             ex.getMessage();
         }
             
-        
+        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","Lista de estudiantes").build();
     }
-    
+
     @PUT
     @Path("/actualizar")
     @Consumes(MediaType.APPLICATION_JSON)

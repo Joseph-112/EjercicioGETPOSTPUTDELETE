@@ -5,7 +5,10 @@
  */
 package com.mycompany.EjercicioGPPD.dto;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,6 +41,17 @@ public class EstudianteDto implements Serializable{
         this.correo = correo;
         this.listaMateria = listaMateria;
         this.numero = numero;
+    }
+
+    @Override
+    public String toString() {
+        return "EstudianteDto{" + "cedula=" + cedula + ", nombre=" + nombre + ", apellido=" + apellido + ", edad=" + edad + ", correo=" + correo + ", listaMateria=" + listaMateria + ", numero=" + Arrays.toString(numero) + '}';
+    }
+    
+    private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException{
+        // perform the default de-serialization first
+        aInputStream.defaultReadObject();
+ 
     }
 
     public String getCedula() {
