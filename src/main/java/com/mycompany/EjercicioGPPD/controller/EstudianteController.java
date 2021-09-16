@@ -7,7 +7,9 @@ package com.mycompany.EjercicioGPPD.controller;
 
 import com.google.gson.Gson;
 import com.mycompany.EjercicioGPPD.dto.EstudianteDto;
+import com.mycompany.EjercicioGPPD.dto.ListaEstudiantes;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -77,8 +80,7 @@ public class EstudianteController {
     @GET
     @Path("/obtener")
     @Produces(MediaType.APPLICATION_JSON)
-    @Null
-    public List<EstudianteDto> obtener(){    
+    public Response obtener(){    
         
         ObjectInputStream ois = null;
         try {
@@ -94,9 +96,16 @@ public class EstudianteController {
             ois = new ObjectInputStream(new FileInputStream(ruta));
             // Se lee el primer objeto
             //Object aux = ois.readObject();
-            EstudianteDto aux = (EstudianteDto) ois.readObject();
+            //EstudianteDto aux = (EstudianteDto) ois.readObject();
+            //System.out.println(aux.toString());
+            ListaEstudiantes aux = (ListaEstudiantes) ois.readObject();
+            List<EstudianteDto> lista = new ArrayList<EstudianteDto>(aux.getListaEst().size());
+            Collections.copy(lista, aux.getListaEst());
+            System.out.println(lista.size());
+            
+            //EstudianteDto aux = (EstudianteDto) ois.readObject();
 
-            System.out.println(aux.toString());
+            // System.out.println(aux.toString());
             // Mientras haya objetos
             /*
             while (aux != null) {
@@ -118,7 +127,7 @@ public class EstudianteController {
             int[] vector = {1, 2, 3, 4};
             listaEst.add( new EstudianteDto("1070", "Johans",  "Gonzalez", 25, "johans-123@hotmail.com", listaMateria, vector));
             listaEst.add( new EstudianteDto("1234", "Joseph",  "Trejos", 25, "adsfghdsa-123@hotmail.com", listaMateria, vector));
-            return listaEst;
+            //return listaEst;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -246,9 +255,45 @@ public class EstudianteController {
     public Response insertar(EstudianteDto estudiante){
         
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ruta));
             
-            oos.writeObject(estudiante);
+            ListaEstudiantes lista = new ListaEstudiantes();
+            List<EstudianteDto> listaAux = new ArrayList<EstudianteDto>();
+            listaAux.add(estudiante);
+            lista.setListaEst(listaAux);
+            
+            File archivo = new File(ruta);
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivo));
+            
+            oos.writeObject(lista);
+            
+            oos.close();
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+            ex.getMessage();
+        } catch (IOException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+            ex.getMessage();
+        }
+            
+        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","Lista de estudiantes").build();
+    }
+    
+    @POST
+    @Path("/insertarPorLista")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @NotNull
+    public Response insertarPorLista(List<EstudianteDto> estudiante){
+        
+        try {
+            
+            ListaEstudiantes lista = new ListaEstudiantes();
+            lista.setListaEst(estudiante);
+            
+            File archivo = new File(ruta);
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivo));
+            
+            oos.writeObject(lista);
             
             oos.close();
             
