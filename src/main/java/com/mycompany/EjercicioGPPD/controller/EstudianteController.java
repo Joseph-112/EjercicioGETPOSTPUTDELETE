@@ -50,7 +50,7 @@ import org.json.simple.parser.ParseException;
 @Path("/estudiantes")
 public class EstudianteController {
     
-    private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Ejemplos\\estudiantes.txt";
+    private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
     
     /*
     @GET
@@ -99,9 +99,9 @@ public class EstudianteController {
             //EstudianteDto aux = (EstudianteDto) ois.readObject();
             //System.out.println(aux.toString());
             ListaEstudiantes aux = (ListaEstudiantes) ois.readObject();
-            List<EstudianteDto> lista = new ArrayList<EstudianteDto>(aux.getListaEst().size());
-            Collections.copy(lista, aux.getListaEst());
-            System.out.println(lista.size());
+            for (EstudianteDto estudianteDto : aux.getListaEst()) {
+                System.out.println(estudianteDto.toString());
+            }
             
             //EstudianteDto aux = (EstudianteDto) ois.readObject();
 
@@ -128,6 +128,8 @@ public class EstudianteController {
             listaEst.add( new EstudianteDto("1070", "Johans",  "Gonzalez", 25, "johans-123@hotmail.com", listaMateria, vector));
             listaEst.add( new EstudianteDto("1234", "Joseph",  "Trejos", 25, "adsfghdsa-123@hotmail.com", listaMateria, vector));
             //return listaEst;
+            return Response.status(Response.Status.CREATED).entity(aux.getListaEst()).header("Tipo dato","Lista de estudiantes").build();
+
         } catch (FileNotFoundException ex) {
             Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -145,30 +147,26 @@ public class EstudianteController {
         
     }
 
-    private String leerArchivo(){
+    private List<EstudianteDto> leerArchivo(){
         
-        Gson gson = new Gson();
-        
-        String fichero = "";
-        
-        try (BufferedReader br = new BufferedReader(new FileReader (ruta))) {
-            
-            String linea;
-            
-            while((linea = br.readLine()) != null)
-                fichero+=linea;
-            
-            EstudianteDto estudiante = gson.fromJson(fichero, EstudianteDto.class);
-            fichero = gson.toJson(estudiante);
-           
-            return fichero;
-        } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
-        } catch (IOException e){
-            System.out.println(e.getMessage());
-        } catch (Exception e){
-            fichero = leerArchivoLista(); 
-            return fichero ;
+        ObjectInputStream ois = null;
+        try {
+            ois = new ObjectInputStream(new FileInputStream(ruta));
+            ListaEstudiantes aux = (ListaEstudiantes) ois.readObject();
+            ois.close();
+            return aux.getListaEst();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                ois.close();
+            } catch (IOException ex) {
+                Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return null;
     }
@@ -202,52 +200,6 @@ public class EstudianteController {
         return null;
     }
     
-    /*
-    
-    /////////////// Insertar usando FileWriter y BufferedWriter ///////////////
-    
-    @POST
-    @Path("/insertar")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void insertar(EstudianteDto estudiante){
-        try {
-            File archivo = new File(ruta);
-            FileWriter fw = new FileWriter(archivo);
-            BufferedWriter estudianteBW = new BufferedWriter(fw);
-            Gson gson = new Gson();
-            String estudianteJson = gson.toJson(estudiante);
-            if(!archivo.exists()){      
-                
-                archivo.createNewFile();     
-                
-                
-                estudianteBW.write(estudianteJson);
-                System.out.println("Primera vez");
-            }else{
-                estudianteBW.append(estudianteJson);
-                System.out.println("No es primera vez" + estudianteJson);
-            }
-            estudianteBW.close();
-            fw.close();
-            
-            /*estudianteBW.write(estudiante.getNombre());
-                estudianteBW.write(estudiante.getApellido());
-                estudianteBW.write(estudiante.getEdad().toString());
-                estudianteBW.write(estudiante.getCorreo());
-                for (String materia : estudiante.getListaMateria()) {
-                    estudianteBW.write(materia);
-                }
-                for (int numero : estudiante.getNumero()) {
-                    estudianteBW.write(numero);
-                } 
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Problema con encontrar archivo");
-        }
-    }
-    */
-    
     @POST
     @Path("/insertar")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -257,7 +209,8 @@ public class EstudianteController {
         try {
             
             ListaEstudiantes lista = new ListaEstudiantes();
-            List<EstudianteDto> listaAux = new ArrayList<EstudianteDto>();
+            
+            List<EstudianteDto> listaAux = leerArchivo();
             listaAux.add(estudiante);
             lista.setListaEst(listaAux);
             
