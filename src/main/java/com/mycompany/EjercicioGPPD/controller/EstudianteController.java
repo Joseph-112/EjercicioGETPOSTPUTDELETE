@@ -99,6 +99,7 @@ public class EstudianteController {
         
         ListaEstudiantes lista = new ListaEstudiantes();
         List<EstudianteDto> listaAux = leerArchivo();
+        listaAux.add(estudiante);
         escribirEnArchivo(listaAux);
             
         return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","EstudianteDto").build();
