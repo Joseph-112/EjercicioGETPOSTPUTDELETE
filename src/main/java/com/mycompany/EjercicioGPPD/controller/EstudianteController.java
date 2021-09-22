@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -41,27 +42,13 @@ import javax.ws.rs.core.Response;
 @Path("/estudiantes")
 public class EstudianteController {
     
-    //private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
-    private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
-    
-    /*
-    @GET
-    @Path("/obtener/{semestre}/{genero}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<String> obtener(    @PathParam ("semestre") String semestre,
-                                    @PathParam ("genero") String genero){
-        System.out.println(semestre+" "+genero);
-        List<String> ejemplo = new ArrayList<>();
-        ejemplo.add("Algo");
-        ejemplo.add("Otro");
-        return ejemplo;
-    }
-    */
-    
+    private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
+    //private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
+        
     @GET
     @Path("/obtenerPorCedula/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response obtenerPorCedula(@PathParam ("cedula") String cedula){        
+    public Response obtenerPorCedula(@Valid @PathParam ("cedula") String cedula){        
         
         List<EstudianteDto> aux = leerArchivo();
         EstudianteDto encontrado = null;
@@ -94,8 +81,7 @@ public class EstudianteController {
     @POST
     @Path("/insertar")
     @Consumes(MediaType.APPLICATION_JSON)
-    @NotNull
-    public Response insertar(EstudianteDto estudiante){
+    public Response insertar(@Valid EstudianteDto estudiante){
         
         ListaEstudiantes lista = new ListaEstudiantes();
         List<EstudianteDto> listaAux = leerArchivo();
@@ -108,7 +94,6 @@ public class EstudianteController {
     @POST
     @Path("/insertarPorLista")
     @Consumes(MediaType.APPLICATION_JSON)
-    @NotNull
     public Response insertarPorLista(List<EstudianteDto> estudiante){
         
         try {
@@ -137,8 +122,7 @@ public class EstudianteController {
     @PUT
     @Path("/actualizar/{cedula}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @NotNull
-    public Response actualizar(@PathParam("cedula") String cedula, EstudianteDto estudianteDto){
+    public Response actualizar(@PathParam("cedula") String cedula,@Valid EstudianteDto estudianteDto){
         
         List<EstudianteDto> aux = leerArchivo();
         List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
@@ -160,7 +144,6 @@ public class EstudianteController {
     @DELETE
     @Path("/eliminar/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
-    @NotNull
     public Response eliminar(@PathParam("cedula") String cedula){    
         List<EstudianteDto> aux = leerArchivo();
         List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
@@ -174,7 +157,7 @@ public class EstudianteController {
             }
         }
         escribirEnArchivo(listaNueva);
-        return Response.status(Response.Status.OK).entity(listaNueva).header("Tipo dato","Estudiante").build();
+        return Response.status(Response.Status.NO_CONTENT).entity(listaNueva).header("Tipo dato","Estudiante").build();
     }
     
     
