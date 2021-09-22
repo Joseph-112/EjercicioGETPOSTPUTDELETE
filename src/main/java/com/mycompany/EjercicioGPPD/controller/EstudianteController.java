@@ -98,12 +98,17 @@ public class EstudianteController {
     @Path("/insertar")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertar(@Valid EstudianteDto estudiante){
-        
-        List<EstudianteDto> listaAux = leerArchivo();
-        listaAux.add(estudiante);
-        escribirEnArchivo(listaAux);
-            
-        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","EstudianteDto").build();
+        List<EstudianteDto> listaNueva = leerArchivo();
+        estudiante.getCedula();
+        for (EstudianteDto estuCedula : listaNueva) {
+            if (estuCedula.getCedula().equals(estudiante.getCedula())) {
+              return Response.status(Response.Status.CONFLICT).entity(estudiante).header("Tipo dato","EstudianteDto").build(); 
+            } 
+        }
+        listaNueva.add(estudiante);
+        escribirEnArchivo(listaNueva);   
+        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","EstudianteDto").build(); 
+      
     }
     
     /**
@@ -152,20 +157,26 @@ public class EstudianteController {
         
         List<EstudianteDto> aux = leerArchivo();
         List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
-        
-        for (EstudianteDto encontrado : aux) {
-            
-            if (!encontrado.getCedula().equals(cedula)) {
+        byte count = 0;
+        for(EstudianteDto encontrado : aux){
+            if(!encontrado.getCedula().equals(cedula)){
                 listaNueva.add(encontrado);
             }else{
-                System.out.println("Estudiante antigua: " + encontrado.toString());                
-                System.out.println("Estudiante nueva: "+ estudianteDto.toString());
-                listaNueva.add(estudianteDto);
+                count+=1;
             }
         }
+
+        if (count < 1) {
+            return Response.status(Response.Status.NOT_FOUND).entity("la cedula no se encuentra en el sistema: "+cedula).header("Tipo dato", "Estudiante").build();
+        }
         
-        
-        
+        for(EstudianteDto encontradoDos : listaNueva){
+            if(encontradoDos.getCedula().equals(estudianteDto.getCedula())){                
+                return Response.status(Response.Status.CONFLICT).entity("la cedula ya se encuentra en el sistema: "+encontradoDos).header("Tipo dato", "Estudiante").build();
+            }
+        }
+        listaNueva.add(estudianteDto);
+
         escribirEnArchivo(listaNueva);
         return Response.status(Response.Status.OK).entity(listaNueva).header("Tipo dato","Estudiante").build();
     }
