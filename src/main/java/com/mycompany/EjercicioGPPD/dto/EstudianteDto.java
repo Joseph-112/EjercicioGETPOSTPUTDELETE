@@ -10,24 +10,33 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 /**
  *
  * @author Joseph
  */
+@Entity
 public class EstudianteDto implements Serializable{
+    @Id 
+    @Min(value = 100000, message="Debe ser mayor de 8 digitos")
+    @Max(value = 2000000000, message="Debe ser menor de 11 digitos")
     private String cedula;
-    
+    @Size(min=2, max=30)
     private String nombre;
-    
+    @Size(min=2, max=30)
     private String apellido;
-    
+    @Min(value=18)
+    @Max(value = 120)
     private Integer edad;
-    
+    @Pattern(message = "Error, correo del medico invalido", regexp = "^[^@]+@[^@]+\\.[a-zA-Z]{2,}$")
     private String correo;
-    
     private List<String> listaMateria;
-    
     private int[] numero;
 
     public EstudianteDto() {
