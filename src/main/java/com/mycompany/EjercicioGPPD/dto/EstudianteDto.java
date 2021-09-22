@@ -18,11 +18,14 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 /**
- *
- * @author Joseph
+ * Clase EstudianteDTO de tipo "Serializable" para ser almacenada en archivo plano
+ * @author Laura, Joseph
+ * @version 1.0.0
  */
 @Entity
 public class EstudianteDto implements Serializable{
+    
+    
     @Id 
     @Min(value = 100000, message="Debe ser mayor de 8 digitos")
     @Max(value = 2000000000, message="Debe ser menor de 11 digitos")
@@ -39,9 +42,22 @@ public class EstudianteDto implements Serializable{
     private List<String> listaMateria;
     private int[] numero;
 
+    /**
+     * Constructor vacío
+     */
     public EstudianteDto() {
     }
 
+    /**
+     * Constructor que recibe cedula, nombre, apellido, edad, correo, lista de materias y vector con números
+     * @param cedula
+     * @param nombre
+     * @param apellido
+     * @param edad
+     * @param correo
+     * @param listaMateria
+     * @param numero 
+     */
     public EstudianteDto(String cedula, String nombre, String apellido, Integer edad, String correo, List<String> listaMateria, int[] numero) {
         this.cedula = cedula;
         this.nombre = nombre;
@@ -52,16 +68,21 @@ public class EstudianteDto implements Serializable{
         this.numero = numero;
     }
 
+    /**
+     * Método sobreescrito que retorna de forma estructurada, toda la información de un estudiante
+     * @return String
+     */
     @Override
     public String toString() {
         return "EstudianteDto{" + "cedula=" + cedula + ", nombre=" + nombre + ", apellido=" + apellido + ", edad=" + edad + ", correo=" + correo + ", listaMateria=" + listaMateria + ", numero=" + Arrays.toString(numero) + '}';
     }
     
+    /*
     private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException{
         // perform the default de-serialization first
         aInputStream.defaultReadObject();
  
-    }
+    }*/
 
     public String getCedula() {
         return cedula;

@@ -9,16 +9,25 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- *
- * @author Joseph
+ * Clase ListaEstudiantes de tipo "Serializable" para ser almacenada en archivo plano
+ * @author Laura Babativa, Joseph Trejos
+ * @version 1.0.0
  */
 public class ListaEstudiantes implements Serializable {
     
+    
     private List<EstudianteDto> listaEst;
 
+    /**
+     * Constructor vacío
+     */
     public ListaEstudiantes() {
     }
 
+    /**
+     * Constructor que recibe una lista de tipo EstudianteDto
+     * @param listaEst 
+     */
     public ListaEstudiantes(List<EstudianteDto> listaEst) {
         this.listaEst = listaEst;
     }

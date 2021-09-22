@@ -35,16 +35,23 @@ import javax.ws.rs.core.Response;
 
 /**
  *
- * @author Joseph
+ * @author Laura, Joseph
+ * @version 1.0.0
  */
 
 @Stateless
 @Path("/estudiantes")
 public class EstudianteController {
     
-    private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
-    //private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
-        
+    
+    //private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
+    private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
+    
+    /**
+     * Método GET para obtener un estudiante utilizando el número de cédula
+     * @param cedula
+     * @return 
+     */
     @GET
     @Path("/obtenerPorCedula/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -65,6 +72,10 @@ public class EstudianteController {
           
     }
     
+    /**
+     * Método GET para obtener la lista completa de estudiantes ingresados en el archivo
+     * @return 
+     */
     @GET
     @Path("/obtener")
     @Produces(MediaType.APPLICATION_JSON)
@@ -78,12 +89,16 @@ public class EstudianteController {
             
     }    
     
+    /**
+     * Método POST para insertar un estudiante (en formato JSON) a la lista en el archivo
+     * @param estudiante
+     * @return 
+     */
     @POST
     @Path("/insertar")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertar(@Valid EstudianteDto estudiante){
         
-        ListaEstudiantes lista = new ListaEstudiantes();
         List<EstudianteDto> listaAux = leerArchivo();
         listaAux.add(estudiante);
         escribirEnArchivo(listaAux);
@@ -91,6 +106,11 @@ public class EstudianteController {
         return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","EstudianteDto").build();
     }
     
+    /**
+     * Método opcional POST para ingresar una lista de estudiantes (en formato JSON) al archivo.
+     * @param estudiante
+     * @return 
+     */
     @POST
     @Path("/insertarPorLista")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -119,6 +139,12 @@ public class EstudianteController {
         return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","Lista de estudiantes").build();
     }
 
+    /**
+     * Método PUT para modificar 
+     * @param cedula
+     * @param estudianteDto
+     * @return 
+     */
     @PUT
     @Path("/actualizar/{cedula}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -137,10 +163,18 @@ public class EstudianteController {
                 listaNueva.add(estudianteDto);
             }
         }
+        
+        
+        
         escribirEnArchivo(listaNueva);
         return Response.status(Response.Status.OK).entity(listaNueva).header("Tipo dato","Estudiante").build();
     }
     
+    /**
+     * Método DELETE para eliminar un estudiante del archivo filtrando su cédula
+     * @param cedula
+     * @return 
+     */
     @DELETE
     @Path("/eliminar/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -160,7 +194,11 @@ public class EstudianteController {
         return Response.status(Response.Status.NO_CONTENT).entity(listaNueva).header("Tipo dato","Estudiante").build();
     }
     
-    
+    /**
+     * Método para leer el archivo en donde se encuentran almacenados todos los estudiantes ingresados y regresa la lista con los mismos
+     * @return
+     * @return List<EstudianteDto> 
+     */
     private List<EstudianteDto> leerArchivo(){
         
         ObjectInputStream ois = null;
@@ -185,6 +223,11 @@ public class EstudianteController {
         return null;
     }
     
+    /**
+     * Método para escribir en el archivo que almacena los estudiantes
+     * La lista que contiene a los estudiantes debe ser de tipo "serializable" para realizar la escritura
+     * @param listaEstudiantes 
+     */
     public void escribirEnArchivo(List<EstudianteDto> listaEstudiantes){
         
         try{
