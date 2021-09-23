@@ -20,7 +20,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -44,8 +45,8 @@ import javax.ws.rs.core.Response;
 public class EstudianteController {
     
     
-    //private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
-    private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
+    private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
+    //private static final String ruta="C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
     
     /**
      * Método GET para obtener un estudiante utilizando el número de cédula
@@ -64,10 +65,10 @@ public class EstudianteController {
             if (estudianteDto.getCedula().equals(cedula)) {
                 System.out.println(estudianteDto.toString());
                 encontrado = estudianteDto;
-                return Response.status(Response.Status.OK).entity(encontrado).header("Tipo dato","Estudiante").build();
+                return Response.status(Response.Status.OK).entity("Estudiante encontrado: "+ estudianteDto).header("Tipo dato","Estudiante").build();
             }
         }
-        return Response.status(Response.Status.NOT_FOUND).entity(encontrado).header("Tipo dato", "Lista de estudiantes").build();
+        return Response.status(Response.Status.NOT_FOUND).entity("Estudiante no encontrado con esta cedula: "+ cedula).header("Tipo dato", "Lista de estudiantes").build();
 
           
     }
@@ -82,6 +83,9 @@ public class EstudianteController {
     public Response obtener(){    
         
         List<EstudianteDto> aux = leerArchivo();
+        if (aux.isEmpty()) {
+            return Response.status(Response.Status.NO_CONTENT).entity("Lista vacia").header("Tipo dato","Lista de estudiantes").build();
+        }
         for (EstudianteDto estudianteDto : aux) {
             System.out.println(estudianteDto.toString());
         }
@@ -107,41 +111,58 @@ public class EstudianteController {
         }
         listaNueva.add(estudiante);
         escribirEnArchivo(listaNueva);   
-        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","EstudianteDto").build(); 
+        return Response.status(Response.Status.CREATED).entity("Creado Correctamente: "+estudiante).header("Tipo dato","EstudianteDto").build(); 
       
     }
     
     /**
-     * Método opcional POST para ingresar una lista de estudiantes (en formato JSON) al archivo.
-     * @param estudiante
-     * @return 
-     */
+    * Método opcional POST para ingresar una lista de estudiantes (en formato JSON) al archivo.
+    * @param estudiante
+    * @return
+    */
     @POST
     @Path("/insertarPorLista")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertarPorLista(List<EstudianteDto> estudiante){
-        
-        try {
-            
-            ListaEstudiantes lista = new ListaEstudiantes();
-            lista.setListaEst(estudiante);
-            
-            File archivo = new File(ruta);
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivo));
-            
-            oos.writeObject(lista);
-            
-            oos.close();
-            
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
-        } catch (IOException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
+    public Response insertarPorLista(@Valid List<EstudianteDto> estudiante){
+
+    try {
+
+        ListaEstudiantes lista = new ListaEstudiantes();
+        lista.setListaEst(estudiante);
+
+        List<EstudianteDto> listaArchivo = leerArchivo();
+
+        for (EstudianteDto estuCedula : listaArchivo) {
+
+            for (EstudianteDto estudianteDto : estudiante) {
+                if (estuCedula.getCedula().equals(estudianteDto.getCedula())) {
+                    return Response.status(Response.Status.CONFLICT).entity("Cedula ya registrada: "+estuCedula).header("Tipo dato", "EstudianteDto").build();
+                }
+            }
+
         }
-            
-        return Response.status(Response.Status.CREATED).entity(estudiante).header("Tipo dato","Lista de estudiantes").build();
+
+        for (EstudianteDto estudianteDto : lista.getListaEst()) {
+            listaArchivo.add(estudianteDto);
+        }
+
+        lista.setListaEst(listaArchivo);
+
+        File archivo = new File(ruta);
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivo));
+
+        oos.writeObject(lista);
+
+        oos.close();
+
+    } catch (FileNotFoundException ex) {
+        Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        ex.getMessage();
+    } catch (IOException ex) {
+        Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
+        ex.getMessage();
+    }
+        return Response.status(Response.Status.CREATED).entity("Creado Correctamente: "+estudiante).header("Tipo dato", "EstudianteDto").build();
     }
 
     /**
@@ -153,7 +174,8 @@ public class EstudianteController {
     @PUT
     @Path("/actualizar/{cedula}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response actualizar(@PathParam("cedula") String cedula,@Valid EstudianteDto estudianteDto){
+    public Response actualizar(@Valid @NotEmpty(message = "No se permite campo vacio")
+@Size(min=8, max=10, message = "Minimo 8 digitos maximo 10") @PathParam("cedula") String cedula,@Valid EstudianteDto estudianteDto){
         
         List<EstudianteDto> aux = leerArchivo();
         List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
@@ -178,7 +200,7 @@ public class EstudianteController {
         listaNueva.add(estudianteDto);
 
         escribirEnArchivo(listaNueva);
-        return Response.status(Response.Status.OK).entity(listaNueva).header("Tipo dato","Estudiante").build();
+        return Response.status(Response.Status.OK).entity("Lista actualizada: "+listaNueva).header("Tipo dato","Estudiante").build();
     }
     
     /**
@@ -189,20 +211,25 @@ public class EstudianteController {
     @DELETE
     @Path("/eliminar/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response eliminar(@PathParam("cedula") String cedula){    
+    public Response eliminar(@Valid @NotEmpty(message = "No se permite campo vacio")
+@Size(min=8, max=10, message = "Minimo 8 digitos maximo 15") @PathParam("cedula") String cedula){    
         List<EstudianteDto> aux = leerArchivo();
         List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
+        byte count=0;
         for (EstudianteDto estudianteDto : aux) {
             
             if (!estudianteDto.getCedula().equals(cedula)) {
                 listaNueva.add(estudianteDto);
             }else{
                 System.out.println("Estudiante eliminada: " + estudianteDto.toString());                
-                
+                count+=1;
             }
         }
+        if (count < 1) {
+            return Response.status(Response.Status.NOT_FOUND).entity("la cedula no se encuentra en el sistema: "+cedula).header("Tipo dato", "Estudiante").build();
+        }
         escribirEnArchivo(listaNueva);
-        return Response.status(Response.Status.NO_CONTENT).entity(listaNueva).header("Tipo dato","Estudiante").build();
+        return Response.status(Response.Status.NO_CONTENT).entity("Estudiante eliminada: " +listaNueva).header("Tipo dato","Estudiante").build();
     }
     
     /**

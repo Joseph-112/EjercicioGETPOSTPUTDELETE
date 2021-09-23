@@ -37,7 +37,7 @@ public class EstudianteDto implements Serializable{
     @Min(value=18)
     @Max(value = 120)
     private Integer edad;
-    @Pattern(message = "Error, correo del medico invalido", regexp = "^[^@]+@[^@]+\\.[a-zA-Z]{2,}$")
+    @Pattern(message = "Error, correo del estudiante invalido", regexp = "^[^@]+@[^@]+\\.[a-zA-Z]{2,}$")
     private String correo;
     private List<String> listaMateria;
     private int[] numero;
