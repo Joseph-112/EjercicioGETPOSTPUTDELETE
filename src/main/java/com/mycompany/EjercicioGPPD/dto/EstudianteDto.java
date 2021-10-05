@@ -5,8 +5,6 @@
  */
 package com.mycompany.EjercicioGPPD.dto;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -29,14 +28,20 @@ public class EstudianteDto implements Serializable{
     @Id 
     @Min(value = 100000, message="Debe ser mayor de 8 digitos")
     @Max(value = 2000000000, message="Debe ser menor de 11 digitos")
+    //@Size(min = 8 , max = 10 , message="Debe tener el número correcto de caracteres")
+    @NotNull
     private String cedula;
     @Size(min=2, max=30)
+    @NotNull
     private String nombre;
+    @NotNull
     @Size(min=2, max=30)
     private String apellido;
+    @NotNull
     @Min(value=18)
     @Max(value = 120)
     private Integer edad;
+    @NotNull
     @Pattern(message = "Error, correo del estudiante invalido", regexp = "^[^@]+@[^@]+\\.[a-zA-Z]{2,}$")
     private String correo;
     private List<String> listaMateria;
