@@ -5,11 +5,15 @@
  */
 package com.mycompany.EjercicioGPPD.controller;
 
+//import com.logic.dto.EstudianteDto;
+//import com.logic.dto.ListaEstudiantes;
 import com.mycompany.EjercicioGPPD.dto.EstudianteDto;
-import com.mycompany.EjercicioGPPD.dto.ListaEstudiantes;
 import com.mycompany.EjercicioGPPD.exception.CedulaException;
 import com.mycompany.EjercicioGPPD.exception.CedulaRepetidaException;
+import com.mycompany.EjercicioGPPD.exception.CorreoRepetidoException;
+import com.mycompany.EjercicioGPPD.exception.EdadException;
 import com.mycompany.EjercicioGPPD.exception.ExceptionWrapper;
+import com.mycompany.EjercicioGPPD.exception.LongitudCedException;
 import com.mycompany.EjercicioGPPD.service.EstudianteService;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,6 +38,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+//import com.logic.service.IAlumnoService;
+//import javax.ejb.EJB;
 
 /**
  *
@@ -45,9 +51,10 @@ import javax.ws.rs.core.Response;
 public class EstudianteController {
 
     //private static final String ruta="D:\\Usuarios\\la1ba\\Documents\\Octavo semestre\\Linea de profundizacion II\\CrudStudentsSeptember\\estudiantes.txt";
-    private static final String ruta = "C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Trabajos\\EjercicioGETPOSTPUTDELETE\\estudiantes.txt";
+    private static final String ruta = "C:\\Users\\josep\\Desktop\\Personal\\Universidad\\Línea de profundización 2\\Repositorio emergencia\\RespaldoEjercicioGETPOSTPUTDELETE\\estudiantes.txt";
     private static final EstudianteService est = new EstudianteService();
-
+    //@EJB
+    //private IAlumnoService est;
     /**
      * Método GET para obtener un estudiante utilizando el número de cédula
      *
@@ -58,7 +65,7 @@ public class EstudianteController {
     @GET
     @Path("/obtenerPorCedula/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response obtenerPorCedula(@Valid @PathParam("cedula") String cedula) throws CedulaException, Exception {
+    public Response obtenerPorCedula(@Valid @PathParam("cedula") String cedula) throws CedulaException, LongitudCedException , Exception {
 
         try {
             EstudianteDto estudianteDto = est.buscarPorCedula(cedula);
@@ -70,6 +77,13 @@ public class EstudianteController {
                     "/estudiantes/obtenerPorCedula");
 
             return Response.status(Response.Status.NOT_FOUND).entity(wrapper).build();
+        } catch (LongitudCedException ex){
+            System.out.println("Entro a exception de longitud");
+            ex.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("400", "BAD REQUEST", "Cédula debe tener entre 8 y 11 dígitos",
+                    "/estudiantes/obtenerPorCedula");
+
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
         }
     }
 
@@ -82,7 +96,7 @@ public class EstudianteController {
     @GET
     @Path("/obtener")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response obtener() {
+    public Response obtener(){
 
         List<EstudianteDto> aux = est.leerArchivo();
         if (aux.isEmpty()) {
@@ -96,30 +110,6 @@ public class EstudianteController {
     }
 
     /**
-     * Método POST para insertar un estudiante (en formato JSON) a la lista en
-     * el archivo
-     *
-     * @param estudiante
-     * @return
-     */
-    @POST
-    @Path("/insertar")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertar(@Valid EstudianteDto estudiante) {
-        List<EstudianteDto> listaNueva = est.leerArchivo();
-        estudiante.getCedula();
-        for (EstudianteDto estuCedula : listaNueva) {
-            if (estuCedula.getCedula().equals(estudiante.getCedula())) {
-                return Response.status(Response.Status.CONFLICT).entity(estudiante).header("Tipo dato", "EstudianteDto").build();
-            }
-        }
-        listaNueva.add(estudiante);
-        est.escribirEnArchivo(listaNueva);
-        return Response.status(Response.Status.CREATED).entity("Creado Correctamente: " + estudiante).header("Tipo dato", "EstudianteDto").build();
-
-    }
-
-    /**
      * Método opcional POST para ingresar una lista de estudiantes (en formato
      * JSON) al archivo.
      *
@@ -129,48 +119,42 @@ public class EstudianteController {
     @POST
     @Path("/insertarPorLista")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertarPorLista(@Valid List<EstudianteDto> estudiante) {
+    public Response insertarPorLista(@Valid List<EstudianteDto> estudiante) throws EdadException , CedulaRepetidaException, LongitudCedException , CorreoRepetidoException , Exception  {
 
         try {
+            est.insertarPorLista(estudiante);
+            return Response.status(Response.Status.CREATED).build();
+        } catch (CedulaRepetidaException ex) {
+            System.out.println("Entro a cedula ya existente en insertar por lista exception");
+            ex.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("419", "CONFLICT", "Cédula ya resgistrada",
+                    "/estudiantes/insertarPorLista");
 
-            ListaEstudiantes lista = new ListaEstudiantes();
-            lista.setListaEst(estudiante);
+            return Response.status(Response.Status.CONFLICT).entity(wrapper).build();
+        } catch (CorreoRepetidoException e) {
+            System.out.println("Entro a correo ya existente exception");
+            e.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("409", "CONFLICT", "Correo ya registrado",
+                    "/estudiantes/actualizar");
 
-            List<EstudianteDto> listaArchivo = est.leerArchivo();
+            return Response.status(Response.Status.CONFLICT).entity(wrapper).build();
+        } catch (EdadException ex){
+            System.out.println("Entro a exception de edad");
+            ex.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("400", "BAD REQUEST", "Edad debe ser entre 18 y 120 años",
+                    "/estudiantes/insertarPorLista");
 
-            for (EstudianteDto estuCedula : listaArchivo) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
+        } catch (LongitudCedException ex){
+            System.out.println("Entro a exception de longitud");
+            ex.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("400", "BAD REQUEST", "Cédula debe tener entre 8 y 11 dígitos",
+                    "/estudiantes/insertarPorLista");
 
-                for (EstudianteDto estudianteDto : estudiante) {
-                    if (estuCedula.getCedula().equals(estudianteDto.getCedula())) {
-                        return Response.status(Response.Status.CONFLICT).entity("Cedula ya registrada: " + estuCedula).header("Tipo dato", "EstudianteDto").build();
-                    }
-                }
-
-            }
-
-            for (EstudianteDto estudianteDto : lista.getListaEst()) {
-                listaArchivo.add(estudianteDto);
-            }
-
-            lista.setListaEst(listaArchivo);
-
-            File archivo = new File(ruta);
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivo));
-
-            oos.writeObject(lista);
-
-            oos.close();
-
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
-        } catch (IOException ex) {
-            Logger.getLogger(EstudianteController.class.getName()).log(Level.SEVERE, null, ex);
-            ex.getMessage();
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
         }
-        return Response.status(Response.Status.CREATED).entity("Creado Correctamente: " + estudiante).header("Tipo dato", "EstudianteDto").build();
     }
-
+    
     /**
      * Método PUT para modificar
      *
@@ -182,11 +166,14 @@ public class EstudianteController {
     @Path("/actualizar/{cedula}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response actualizar(@Valid @NotEmpty(message = "No se permite campo vacio")
-            @Size(min = 8, max = 10, message = "Minimo 8 digitos maximo 10") @PathParam("cedula") String cedula, @Valid EstudianteDto estudianteDto) throws CedulaException, CedulaRepetidaException, Exception{
-    
+            //@Size(min = 8, max = 10, message = "Minimo 8 digitos maximo 10") 
+    @PathParam("cedula") String cedula, @Valid EstudianteDto estudianteDto) throws EdadException , CedulaException, LongitudCedException , CedulaRepetidaException ,Exception {
+
         try {
-            List<EstudianteDto> listaNueva = est.actualizar(cedula, estudianteDto);
-            est.escribirEnArchivo(listaNueva);
+            //List<EstudianteDto> listaNueva = est.editar(cedula, estudianteDto);
+            
+            est.actualizar(cedula, estudianteDto);
+            //est.escribirEnArchivo(listaNueva);
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch (CedulaException e) {
             System.out.println("Entro a cedula no encontrada exception");
@@ -198,39 +185,27 @@ public class EstudianteController {
         } catch (CedulaRepetidaException e) {
             System.out.println("Entro a cedula ya existente exception");
             e.printStackTrace();
-            ExceptionWrapper wrapper = new ExceptionWrapper("419", "CONFLICT", "Cédula ya resgistrada",
+            ExceptionWrapper wrapper = new ExceptionWrapper("409", "CONFLICT", "Cédula ya resgistrada",
                     "/estudiantes/actualizar");
 
             return Response.status(Response.Status.CONFLICT).entity(wrapper).build();
-        } 
-            
+        }  catch (EdadException ex){
+            System.out.println("Entro a exception de edad");
+            ex.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("400", "BAD REQUEST", "Edad debe ser entre 18 y 120 años",
+                    "/estudiantes/insertarPorLista");
+
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
+        }catch (LongitudCedException ex){
+            System.out.println("Entro a exception de longitud");
+            ex.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("400", "BAD REQUEST", "Cédula debe tener entre 8 y 11 dígitos",
+                    "/estudiantes/actualizar");
+
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
+        }
+
         
-        /*
-        List<EstudianteDto> aux = est.leerArchivo();
-        List<EstudianteDto> listaNueva = new ArrayList<EstudianteDto>();
-        byte count = 0;
-        for (EstudianteDto encontrado : aux) {
-            if (!encontrado.getCedula().equals(cedula)) {
-                listaNueva.add(encontrado);
-            } else {
-                count += 1;
-            }
-        }
-
-        if (count < 1) {
-            return Response.status(Response.Status.NOT_FOUND).entity("la cedula no se encuentra en el sistema: " + cedula).header("Tipo dato", "Estudiante").build();
-        }
-
-        for (EstudianteDto encontradoDos : listaNueva) {
-            if (encontradoDos.getCedula().equals(estudianteDto.getCedula())) {
-                return Response.status(Response.Status.CONFLICT).entity("la cedula ya se encuentra en el sistema: " + encontradoDos).header("Tipo dato", "Estudiante").build();
-            }
-        }
-        listaNueva.add(estudianteDto);
-
-        est.escribirEnArchivo(listaNueva);
-        return Response.status(Response.Status.OK).entity("Lista actualizada: " + listaNueva).header("Tipo dato", "Estudiante").build();
-    */
     }
 
     /**
@@ -243,18 +218,26 @@ public class EstudianteController {
     @Path("/eliminar/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response eliminar(@Valid @NotEmpty(message = "No se permite campo vacio")
-            @Size(min = 8, max = 10, message = "Minimo 8 digitos maximo 15") @PathParam("cedula") String cedula) throws Exception {
+            //@Size(min = 8, max = 10, message = "Minimo 8 digitos maximo 15") 
+    @PathParam("cedula") String cedula) throws CedulaException, Exception {
 
         try {
-            List<EstudianteDto> listaNueva = est.eliminarPorCedula(cedula);
-            est.escribirEnArchivo(listaNueva);
+            //List<EstudianteDto> listaNueva = est.eliminarPorCedula(cedula);
+            est.eliminarPorCedula(cedula);
+            //est.escribirEnArchivo(listaNueva);
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch (CedulaException e) {
             System.out.println("Entro a exception");
             e.printStackTrace();
             ExceptionWrapper wrapper = new ExceptionWrapper("404", "NOT_FOUND", "Cédula no encontrada",
-                    "/estudiantes/obtenerPorCedula");
+                    "/estudiantes/eliminar");
             return Response.status(Response.Status.NOT_FOUND).entity(wrapper).build();
+        } catch (LongitudCedException e) {
+            System.out.println("Entro a exception");
+            e.printStackTrace();
+            ExceptionWrapper wrapper = new ExceptionWrapper("400", "BAD REQUEST", "Cédula debe tener entre 8 y 11 dígitos",
+                    "/estudiantes/eliminar");
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
         }
     }
 

@@ -21,13 +21,13 @@ import javax.validation.constraints.Size;
  * @author Laura, Joseph
  * @version 1.0.0
  */
-@Entity
+//@Entity
 public class EstudianteDto implements Serializable{
     
     
-    @Id 
-    @Min(value = 100000, message="Debe ser mayor de 8 digitos")
-    @Max(value = 2000000000, message="Debe ser menor de 11 digitos")
+    //@Id 
+    //@Min(value = 100000, message="Debe ser mayor de 8 digitos")
+    //@Max(value = 2000000000, message="Debe ser menor de 11 digitos")
     //@Size(min = 8 , max = 10 , message="Debe tener el número correcto de caracteres")
     @NotNull
     private String cedula;
@@ -38,8 +38,8 @@ public class EstudianteDto implements Serializable{
     @Size(min=2, max=30)
     private String apellido;
     @NotNull
-    @Min(value=18)
-    @Max(value = 120)
+    //@Min(value=18)
+    //@Max(value = 120)
     private Integer edad;
     @NotNull
     @Pattern(message = "Error, correo del estudiante invalido", regexp = "^[^@]+@[^@]+\\.[a-zA-Z]{2,}$")
